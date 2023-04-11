@@ -1,3 +1,5 @@
+#define _FILE_OFFSET_BITS 64
+
 #include <stdio.h>
 #include <stdbool.h>
 #include <stdlib.h>
@@ -1015,7 +1017,7 @@ static void populate_catalog(FILE *pattern_catalog_file,
                      0);
     /* Write cached piece of the catalog to disk. */
     printf("\nWriting piece to disk...\n");
-    fseeko64(pattern_catalog_file,
+    fseeko(pattern_catalog_file,
               max_cat_cache_size*cache_index*sizeof(Pattern),
               SEEK_SET);
     fwrite(pattern_catalog_cache,
@@ -1054,7 +1056,7 @@ int main(int argc, char *argv[]) {
     return 1;
   }
   /* Offset read position in file by 28 bytes to ignore header data. */
-  fseeko64(bsc_file, 28, SEEK_SET);
+  fseeko(bsc_file, 28, SEEK_SET);
   /* Read BSC5 into cache. */
   for(int i=0;i<STARN;i++){
     fread(&bsc_cache[i].XNO, 4, 1, bsc_file);
@@ -1113,7 +1115,7 @@ int main(int argc, char *argv[]) {
   }
 
   /* Close Hipparchos catalog file. */
-  fclose(bsc_file);
+  // fclose(bsc_file);
   /* Print the number of non-double stars at least as bright as the minimum magnitude. */
   printf("%d non-double stars at least magnitude %.2f found\n", num_stars, min_magnitude);
 

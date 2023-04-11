@@ -1,3 +1,5 @@
+#define _FILE_OFFSET_BITS 64
+
 #include <stdio.h>
 #include <stdbool.h>
 #include <stdlib.h>
@@ -8,7 +10,7 @@
 #include <time.h>
 
 /* Number of stars in the stars file. */
-#define num_stars 5904
+//#define num_stars 5904
 /* Number of patterns locations cached when the catalog is accessed, specifying the */
 /* maximum distance matching patterns can be from the original offset in catalog. */
 /* Too small a value can cause false negatives.  Too large a value can cause an */
@@ -26,10 +28,12 @@
 #define num_stars_in_pattern 4
 /* Size of tetra catalog in Tetras. */
 /* Hard coded for speed.  Must match generated catalog. */
-#define catalog_size_in_patterns 770708495
+/* #define catalog_size_in_patterns 770708495 */
+long catalog_size_in_patterns;
 /* Maximum Field of View for catalog in radians.  Must exactly */
 /* match the max_fov used to generate the catalog . */
-#define max_fov .247
+/* #define max_fov .247 */
+float max_fov;
 /* Ratio of bin size to error range, where bins are the discretization of */
 /* Pattern data values to allow them to be hashed and where the error range covers */
 /* a range of twice the data value's maximum error.  When a data value's error range */
@@ -59,15 +63,14 @@
 /* Maximum number of stars per image. */
 #define max_stars_per_image 25
 /* Number of test images. */
-#define num_images 1000
+/* #define num_images 1000 */
+int num_images;
 /* Mathematical constant pi's approximate value. */
 #define PI 3.1415926
 
 /* The following values are not user defined constants and should not be changed. */
 /* Maximum scaling of image caused by FOV error. */
-float max_scale_factor = fmax(tan(max_fov*(1+max_fov_error)/2.0)/tan(max_fov/2.0),
-                              1-tan(max_fov*(1-max_fov_error)/2.0)/tan(max_fov/2.0));
-/* Largest edge error is proportional to the largest edge ratio by the image scale. */
+float max_scale_factor; /* Largest edge error is proportional to the largest edge ratio by the image scale. */
 /* For example, doubling the largest edge length doubles the scaling error. */
 #define le_error_slope (max_scale_factor-1)
 /* Largest edge error has a constant factor determined by the centroiding error. */
@@ -496,7 +499,7 @@ static int increment_offset(FILE *pattern_catalog,
     /* If reading causes a crash, it can be fixed by taking a max */
     /* of the number of read Patterns with the sum of the catalog */
     /* size and the maximum probe depth minus the offset. */
-    _fseeki64(pattern_catalog, (*offset)*sizeof(Pattern), SEEK_SET);
+    fseeko(pattern_catalog, (*offset)*sizeof(Pattern), SEEK_SET);
     fread(catalog_pattern_cache, sizeof(Pattern), pattern_cache_size, pattern_catalog);
   }
   *probe_step += 1;
@@ -522,7 +525,7 @@ static int get_matching_pattern(Pattern image_pattern,
   /* Initialize offset of the beginning of the Pattern cache in the pattern catalog. */
   uint64_t offset = hash_pattern(image_pattern);
   /* Initialize cache of catalog Patterns. */
-  _fseeki64(pattern_catalog, offset*sizeof(Pattern), SEEK_SET);
+  fseeko(pattern_catalog, offset*sizeof(Pattern), SEEK_SET);
   fread(catalog_pattern_cache, sizeof(Pattern), pattern_cache_size, pattern_catalog);
   /* Iterate over catalog locations in the image Pattern's probing sequence until */
   /* a catalog location without a Pattern is found, which means no matches exist. */
@@ -769,6 +772,19 @@ static int identify_image(double image_stars[max_stars][3],
 }
 
 int main(int argc,char *argv[] ) {
+	if (argc < 1+ 7) {
+		printf("Not enough args! Usage: ./Tetra num_images max_fov num_catalog_patterns /path/to/pattern_catalog /path/to/centroid_data.p /path/to/image_data.p");
+		return 1;
+	}
+	num_images = atoi(argv[1]);
+	max_fov = atof(argv[2]);
+	catalog_size_in_patterns = atol(argv[3]);
+	char *pattern_catalog_path = argv[4];
+	char *centroid_data_path = argv[5];
+	char *image_data_path = argv[6];
+	max_scale_factor = fmax(tan(max_fov*(1+max_fov_error)/2.0)/tan(max_fov/2.0),
+				1-tan(max_fov*(1-max_fov_error)/2.0)/tan(max_fov/2.0));
+
 	clock_t begin, end;
 	int ms_spent;
 	/* Tetra catalog file pointer */
@@ -778,21 +794,21 @@ int main(int argc,char *argv[] ) {
 	int num_pixels_x = 1024;
 	int num_pixels_y = 1024;
 	/* Open pattern catalog file. */
-	pattern_catalog = fopen("pattern_catalog","rb");
+	pattern_catalog = fopen(pattern_catalog_path, "rb");
 	if (!pattern_catalog){
 		printf("Unable to open pattern catalog file!\n");
 		return 1;
 	};
   FILE *centroid_data;
 	/* open centroid memmap */
-	centroid_data = fopen("centroid_data.p","rb");
+	centroid_data = fopen(centroid_data_path, "rb");
 	if (!centroid_data){
 		printf("Unable to open centroid file!");
 		return 1;
 	};
 	/* load image data from file for answer checking */
 	uint16_t *image_data = (uint16_t *)malloc(sizeof(uint16_t)*num_images*max_stars_per_image);
-	FILE *image_data_file = fopen("image_data.p", "rb");
+	FILE *image_data_file = fopen(image_data_path, "rb");
 	if (!image_data_file){
 		printf("Unable to open image file!\n");
 		return 1;
@@ -804,7 +820,7 @@ int main(int argc,char *argv[] ) {
 	for (double fov = 10.1; fov < 10.1001; fov += .05) {
     double fov_factor = (tan(fov*PI/360)*2)/num_pixels_x;
     /* centroiding error in 1/100ths of pixels */
-    for (int centroid_error = 100; centroid_error < 101; centroid_error += 10) {
+    for (int centroid_error = 500; centroid_error < 501; centroid_error += 10) {
       begin = clock();
       int right = 0;
       int failed = 0;
