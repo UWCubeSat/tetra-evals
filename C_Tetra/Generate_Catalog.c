@@ -23,6 +23,10 @@ double min_magnitude;
 /* of small angle approximation and to minimize non-linearity of FOV error. */
 /* .247 radians is about 14.1 degrees or the diagonal of a 10 degree FOV */
 /* #define max_fov .247 */
+// LOST: other useful values:
+// + 0.247 for a 10-degree FOV
+// + 0.494 for a 20-degree FOV
+// + 1.111 for a 45-degree FOV
 double max_fov;
 /* Maximum star coordinate centroiding error as fraction of maximum FOV. */
 /* .001 is .1% of the max FOV or 1.414 pixels in a 1000x1000 image. */
@@ -1029,12 +1033,14 @@ static void populate_catalog(FILE *pattern_catalog_file,
 }
 
 int main(int argc, char *argv[]) {
-  if (argc < 1+ 3) {
-    printf("Usage: ./Generate_Catalog max_fov_in_radians min_magnitude");
+  if (argc < 1+ 4) {
+    printf("Usage: ./Generate_Catalog max_fov_in_radians min_magnitude pattern_catalog_file stars_file\n");
     return 1;
   }
   max_fov = atof(argv[1]);
   min_magnitude = atof(argv[2]);
+  char *pattern_catalog_path = argv[3];
+  char *stars_path = argv[4];
   max_scale_factor = fmax(tan(max_fov*(1+max_fov_error)/2.0)/tan(max_fov/2.0),
 			  1-tan(max_fov*(1-max_fov_error)/2.0)/tan(max_fov/2.0));
 
@@ -1130,7 +1136,7 @@ int main(int argc, char *argv[]) {
   printf("%d non-double stars at least magnitude %.2f found\n", num_stars, min_magnitude);
 
   /* Open stars file for writing. */
-  stars_file = fopen("stars", "wb+");
+  stars_file = fopen(stars_path, "wb+");
   if(!stars_file){
     printf("Unable to open stars file!");
     return 1;
@@ -1155,7 +1161,7 @@ int main(int argc, char *argv[]) {
          catalog_size_in_patterns,
          catalog_size_in_bytes);
   /* Open pattern catalog file for writing. */
-  pattern_catalog_file = fopen("pattern_catalog", "wb+");
+  pattern_catalog_file = fopen(pattern_catalog_path, "wb+");
   if(!pattern_catalog_file){
     printf("Unable to open pattern catalog file!");
     return 1;

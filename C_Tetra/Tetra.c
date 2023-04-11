@@ -774,7 +774,7 @@ static int identify_image(double image_stars[max_stars][3],
 
 int main(int argc,char *argv[] ) {
 	if (argc < 1+ 7) {
-		printf("Not enough args! Usage: ./Tetra num_images max_fov num_catalog_patterns /path/to/pattern_catalog /path/to/centroid_data.p /path/to/image_data.p");
+		printf("Not enough args! Usage: ./Tetra num_images max_fov num_catalog_patterns /path/to/pattern_catalog /path/to/centroid_data.p /path/to/image_data.p\n");
 		return 1;
 	}
 	num_images = atoi(argv[1]);
