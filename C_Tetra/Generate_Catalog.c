@@ -14,7 +14,8 @@
 #define num_stars_in_pattern 4
 /* Minimum star brightness (in magnitude) for inclusion in catalog. */
 /* Note that lower magnitude values are brighter. */
-#define min_magnitude 6.2
+/* #define min_magnitude 6.2 */
+double min_magnitude;
 /* Maximum Field of View for catalog in radians. */
 /* Also the maximum angle between any two stars in a tetrahedron. */
 /* Typically equal to the angle subtended by the imager's diagonal. */
@@ -1028,11 +1029,12 @@ static void populate_catalog(FILE *pattern_catalog_file,
 }
 
 int main(int argc, char *argv[]) {
-  if (argc < 1+ 2) {
-    printf("Usage: ./Generate_Catalog max_fov_in_radians");
+  if (argc < 1+ 3) {
+    printf("Usage: ./Generate_Catalog max_fov_in_radians min_magnitude");
     return 1;
   }
   max_fov = atof(argv[1]);
+  min_magnitude = atof(argv[2]);
   max_scale_factor = fmax(tan(max_fov*(1+max_fov_error)/2.0)/tan(max_fov/2.0),
 			  1-tan(max_fov*(1-max_fov_error)/2.0)/tan(max_fov/2.0));
 

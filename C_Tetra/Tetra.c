@@ -10,6 +10,7 @@
 #include <time.h>
 
 /* Number of stars in the stars file. */
+// LOST: isn't actually used anywhere, so we comment it out to be sure
 //#define num_stars 5904
 /* Number of patterns locations cached when the catalog is accessed, specifying the */
 /* maximum distance matching patterns can be from the original offset in catalog. */

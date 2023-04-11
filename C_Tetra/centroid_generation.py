@@ -1,7 +1,7 @@
 import PIL
 from PIL import Image
 import numpy as np
-import cPickle as p
+import pickle as p
 import itertools as iter
 import random
 import sys
