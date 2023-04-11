@@ -21,7 +21,8 @@
 /* Must be less than pi, but should be much less to prevent invalidation */
 /* of small angle approximation and to minimize non-linearity of FOV error. */
 /* .247 radians is about 14.1 degrees or the diagonal of a 10 degree FOV */
-#define max_fov .247
+/* #define max_fov .247 */
+double max_fov;
 /* Maximum star coordinate centroiding error as fraction of maximum FOV. */
 /* .001 is .1% of the max FOV or 1.414 pixels in a 1000x1000 image. */
 // 1 / (1024*sqrt(2)) < .00069054
@@ -69,8 +70,7 @@
 
 /* The following values are not user defined constants and should therefore not be changed. */
 /* Maximum scaling of image caused by FOV error. */
-float max_scale_factor = fmax(tan(max_fov*(1+max_fov_error)/2.0)/tan(max_fov/2.0),
-                              1-tan(max_fov*(1-max_fov_error)/2.0)/tan(max_fov/2.0));
+float max_scale_factor;
 /* Largest edge error is proportional to the largest edge ratio by the image scale. */
 /* For example, doubling the largest edge length doubles the scaling error. */
 #define le_error_slope (max_scale_factor-1)
@@ -1028,6 +1028,14 @@ static void populate_catalog(FILE *pattern_catalog_file,
 }
 
 int main(int argc, char *argv[]) {
+  if (argc < 1+ 2) {
+    printf("Usage: ./Generate_Catalog max_fov_in_radians");
+    return 1;
+  }
+  max_fov = atof(argv[1]);
+  max_scale_factor = fmax(tan(max_fov*(1+max_fov_error)/2.0)/tan(max_fov/2.0),
+			  1-tan(max_fov*(1-max_fov_error)/2.0)/tan(max_fov/2.0));
+
   /* Hipparchos catalog, pattern catalog, and star vectors file pointers. */
   FILE *bsc_file,*pattern_catalog_file,*stars_file,*hip_numbers_file;
   /* BSC5 cache */
