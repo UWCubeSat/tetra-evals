@@ -773,7 +773,7 @@ static int identify_image(double image_stars[max_stars][3],
 }
 
 int main(int argc,char *argv[] ) {
-	if (argc < 1+ 7) {
+	if (argc < 1+ 6) {
 		printf("Not enough args! Usage: ./Tetra num_images max_fov num_catalog_patterns /path/to/pattern_catalog /path/to/centroid_data.p /path/to/image_data.p\n");
 		return 1;
 	}
@@ -818,10 +818,10 @@ int main(int argc,char *argv[] ) {
 	/* Close Image Data File */
 	fclose(image_data_file);
 	/* fov of image along one axis */
-	for (double fov = 10.1; fov < 10.1001; fov += .05) {
+	double fov = (180/PI) * sqrt(max_fov*max_fov/2.0);
     double fov_factor = (tan(fov*PI/360)*2)/num_pixels_x;
     /* centroiding error in 1/100ths of pixels */
-    for (int centroid_error = 500; centroid_error < 501; centroid_error += 10) {
+    int centroid_error = 0;
       begin = clock();
       int right = 0;
       int failed = 0;
@@ -928,8 +928,6 @@ int main(int argc,char *argv[] ) {
       fprintf(output_file, "number wrong: %d\n", wrong);
       fprintf(output_file, "ms taken: %d\n", ms_spent);
       fclose(output_file);
-    }
-  }
   /* Close Dictionary Memmap */
   fclose(pattern_catalog);	
   /* Close centroid Memmap */
